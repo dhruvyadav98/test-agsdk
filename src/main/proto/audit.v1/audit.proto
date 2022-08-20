@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package audit.v1;
+
+option java_multiple_files = true;
+option java_outer_classname = "AuditProto";
+option java_package = "com.gridcsp.adelson.sdk.audit.protobuf.v1";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+// Service
+service AuditService {
+  rpc getAuditRecord(AuditRequestById) returns (AuditRecord);
+  rpc addAuditRecord(AuditLogRequest) returns (AuditRecord);
+  rpc searchAuditRecords(SearchRequest) returns (SearchResponse);
+}
+
+message AuditRequestById {
+  // mongodb unique id of the record
+  string id = 1;
+}
+
+// Audit record represents an important event in the system that needs to be recorded in the system.
+message AuditRecord {
+  // Id of the record.
+  string id = 1;
+
+  // The subject (user or service) who did an action in the system
+  string subject = 2;
+
+  // The client machine where the subject executed the action.
+  string machine = 3;
+
+  // The time when the event happened.
+  google.protobuf.Timestamp event_time = 4;
+
+  // The event type. (E.g., "login", "Login Successful", "Login Failed")
+  string event_type = 5;
+
+  // The category of the event (E.g., "security", "general")
+  string category = 6;
+
+  // Optional. Any reference this event is associated with.
+  string correlation_id = 7;
+
+  // Optional. Description of the event for display purpose.
+  string description = 8;
+
+  // Event payload
+  google.protobuf.Any payload = 10;
+}
+
+// Audit log request to record an event in the system.
+message AuditLogRequest {
+  // The subject (user or service) who did an action in the system
+  string subject = 2;
+
+  // The client machine where the subject executed the action.
+  string machine = 3;
+
+  // The time when the event happened.
+  google.protobuf.Timestamp event_time = 4;
+
+  // The event type. (E.g., "login", "Login Successful", "Login Failed")
+  string event_type = 5;
+
+  // The category of the event (E.g., "security", "general")
+  string category = 6;
+
+  // Optional. Any reference this event is associated with.
+  string correlation_id = 7;
+
+  // Optional. Description of the event
+  string description = 8;
+
+  // Event payload
+  google.protobuf.Any payload = 10;
+}
+
+message Filters {
+  // The subject (user or service) who did an action in the system
+  string subject = 1;
+
+  // The event type. (E.g., "login", "Login Successful", "Login Failed")
+  string event_type = 2;
+
+  // The start date for filtering
+  google.protobuf.Timestamp start_date = 3;
+
+  // The end date for filtering
+  google.protobuf.Timestamp end_date = 4;
+
+  // Ip address of the machine
+  string source = 5;
+}
+
+// Audit record search request.
+message SearchRequest {
+  // Optional. A filter that chooses which audit records are returned.
+  Filters filter = 1;
+
+  // Optional. The maximum number of results to return from this request. Default is 25.
+  int32 page_size = 2;
+
+  // Optional. E.g., reverse chronological order of event_time
+  string order_by = 3;
+
+  // Optional. If present, then retrieve the next batch of results from the preceding call
+  // to this request.
+  string page_token = 4;
+}
+
+// Audit record search response.
+message SearchResponse {
+  // A list of audit records.
+  repeated AuditRecord audit_records = 1;
+
+  // Optional. If there might be more results than those appearing in this response, then
+  // `nextPageToken` is included.  To get the next set of results, call this
+  // method again using the value of `nextPageToken` as `pageToken`.
+  string next_page_token = 2;
+}
